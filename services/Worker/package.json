@@ -1,0 +1,15 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "Worker Microservice",
+  "scripts": {
+    "dev": "moleculer-runner --repl --hot worker.service.js",
+    "start": "moleculer-runner"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "moleculer": "^0.13.9",
+    "ioredis": "^4.14.0"
+  }
+}

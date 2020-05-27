@@ -1,0 +1,16 @@
+FROM node:current-alpine
+
+ENV NODE_ENV=production
+
+RUN mkdir /app
+WORKDIR /app
+
+COPY services/api/package.json  ./
+
+RUN npm install --production
+
+#COPY ["moleculer.config.js","docker-compose.env", "./"]
+#COPY . .
+COPY molecular.config.js .
+
+CMD ["npm", "start"]

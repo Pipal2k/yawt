@@ -1,0 +1,16 @@
+{
+  "name": "helper",
+  "version": "1.0.0",
+  "description": "API Microservice",
+  "scripts": {
+    "dev": "moleculer-runner  --repl --hot kafka-controller.service.js",
+    "start": "moleculer-runner"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "moleculer": "^0.13.9",
+    "ioredis": "^4.14.0",
+    "kafka-node": "^5.0.0"
+  }
+}

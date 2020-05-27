@@ -1,0 +1,163 @@
+version: "3.2"
+
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    image: pipal/yawt-api
+    #container_name: moleculer-demo-api
+    env_file: docker-compose.env
+    environment:
+      SERVICES: api
+      PORT: 3000
+    depends_on:
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=api"
+      - "traefik.port=3000"
+      - "traefik.frontend.entryPoints=http"
+      - "traefik.frontend.rule=PathPrefix:/"
+    networks:
+      - internal
+
+  greeter:
+    build:
+      context: .
+      dockerfile: services/greeter/Dockerfile
+    image: pipal/yawt-greeter
+    #container_name: moleculer-demo-greeter
+    env_file: docker-compose.env
+    environment:
+      SERVICES: greeter
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - redis
+    networks:
+      - internal
+
+  #coordinator:
+  #  build:
+  #    context: .
+  #    dockerfile: services/coordinator/Dockerfile
+  #  image: pipal/yawt-coordinator
+  #  #container_name: moleculer-demo-greeter
+  #  env_file: docker-compose.env
+  #  environment:
+  #    SERVICES: coordinator
+  #  labels:
+  #    - "traefik.enable=false"
+  #  depends_on:
+  #    - redis
+  #  networks:
+  #    - internal   
+
+  worker:
+    build:
+      context: .
+      dockerfile: services/Worker/Dockerfile
+    image: pipal/yawt-worker
+    #container_name: moleculer-demo-greeter
+    env_file: docker-compose.env
+    environment:
+      SERVICES: worker
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - redis
+    networks:
+      - internal   
+
+  kafka-controller:
+    build:
+      context: .
+      dockerfile: services/kafka/Dockerfile
+    image: pipal/yawt-kafka-controller
+    #container_name: moleculer-demo-greeter
+    env_file: docker-compose.env
+    environment:
+      SERVICES: kafka-controller
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - redis
+    networks:
+      - internal   
+  
+  
+  helper:
+    build:
+      context: .
+      dockerfile: services/helper/Dockerfile
+    image: pipal/yawt-helper
+    #container_name: moleculer-demo-helper
+    env_file: docker-compose.env
+    environment:
+      SERVICES: helper
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      - redis
+    networks:
+      - internal
+
+  redis:
+    image: redis:alpine
+    labels:
+      - "traefik.enable=false"
+    networks:
+      - internal
+    ports:
+      - "6379:6379" #DEV 
+
+  traefik:
+    image: traefik:1.7
+    container_name: traefik
+    command:
+      - "--api"
+      - "--docker"
+      - "--docker.watch"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=traefik"
+      - "traefik.port=8080"
+    ports:
+      - 3000:80
+      - 3001:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev/null:/traefik.toml
+    networks:
+      - internal
+      - default
+  #dray:                                                                                                                   
+  #  image: centurylink/dray
+  #  links:
+  #    - redis
+  #  environment:
+  #    REDIS_PORT: 6379 
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  ports:
+  #    - "3010:3000"
+  #  networks:
+  #    - internal
+  #    - default
+  
+  #dray:
+  #  image: pipal/dray
+  #  links:
+  #   - redis
+  #  volumes:
+  #   - /var/run/docker.sock:/var/run/docker.sock
+  #  ports:
+  #   - "3010:3010"
+  #  networks:
+  #   - internal 
+networks:
+  internal:
+
+  

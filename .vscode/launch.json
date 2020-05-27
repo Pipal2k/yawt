@@ -1,0 +1,80 @@
+{
+	// Use IntelliSense to learn about possible Node.js debug attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Test",
+			"program": "${workspaceFolder}/test/unit/kafka.spec.js",
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Test kafka-producer",
+			"program": "${workspaceFolder}/test/rdkafka-hl-producer.js",
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Test kafka-consumer",
+			"program": "${workspaceFolder}/test/rdkafka-consumer.js",
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Test moduleimpl",
+			"program": "${workspaceFolder}/test/module-test.js",
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		},
+		{
+			"type": "node",
+			"request": "attach",
+			"name": "Attach to Remote",
+			"address": "127.0.0.1",
+			"port": 9229,
+			"localRoot": "${workspaceFolder}",
+			"remoteRoot": "/home/pipal/dev/yawt",
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug",
+			"program": "${workspaceRoot}/node_modules/moleculer/bin/moleculer-runner.js",
+			"cwd": "${workspaceRoot}",
+			"args": [
+				"-c moleculer-dev.config.js",
+				"--repl",
+				"--hot",
+				"services/api"
+			]
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Jest",
+			"program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
+			"args": ["--runInBand"],
+			"cwd": "${workspaceRoot}",
+			"runtimeArgs": [
+                "--nolazy"
+            ]
+		}
+	]
+}

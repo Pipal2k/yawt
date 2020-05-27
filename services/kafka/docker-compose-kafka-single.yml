@@ -1,0 +1,103 @@
+---
+version: '3.2'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.1.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+  kafka:
+    image: confluentinc/cp-kafka:5.1.0
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.1.0
+    depends_on:
+      - kafka
+      - zookeeper
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: GET,POST,PUT,OPTIONS
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+    ports:
+      - "8081:8081"
+
+  kafka-setup:
+    image: confluentinc/cp-kafka:5.1.0
+    hostname: kafka-setup
+    container_name: kafka-setup
+    depends_on:
+      - kafka
+      - schema-registry
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                           cub kafka-ready -b kafka:29092 1 20 && \
+                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 3 --replication-factor 1 --topic transactions && \
+                           kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 3 --replication-factor 1 --topic trans_validator  
+                           '"
+    environment:
+          # The following settings are listed here only to satisfy the image's requirements.
+          # We override the image's `command` anyways, hence this container will not start a broker.
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+
+  rest-proxy:
+      image: confluentinc/cp-kafka-rest:5.1.0
+      depends_on:
+        - zookeeper
+        - kafka
+        - schema-registry
+      environment:
+            KAFKA_REST_HOST_NAME: rest-proxy
+            KAFKA_REST_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_REST_BOOTSTRAP_SERVERS: kafka:29092
+            KAFKA_REST_LISTENERS: http://0.0.0.0:8082
+            KAFKA_REST_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+            KAFKA_REST_ACCESS_CONTROL_ALLOW_METHODS: GET,POST,PUT,OPTIONS
+            KAFKA_REST_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+      ports:
+        - "8082:8082"
+
+  ksql-server:
+      image: "confluentinc/cp-ksql-server:5.1.0"
+      depends_on:
+        - kafka
+        - schema-registry
+      environment:
+        KSQL_BOOTSTRAP_SERVERS: kafka:29092
+        KSQL_LISTENERS: http://0.0.0.0:8088
+        KSQL_KSQL_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      ports:
+        - "8088:8088"
+  ksql-cli:
+      image: confluentinc/cp-ksql-cli:5.1.0
+      entrypoint: /bin/sh
+      tty: true
+  
+  schema-registry-ui:
+      image: landoop/schema-registry-ui
+      depends_on:
+        - schema-registry
+      environment:
+        SCHEMAREGISTRY_URL: http://192.168.174.138:8081
+      ports:
+        - "8000:8000"
+  kafka-topics-ui:
+      image: landoop/kafka-topics-ui
+      depends_on:
+        - zookeeper
+        - kafka
+      environment:
+        KAFKA_REST_PROXY_URL: http://192.168.174.138:8082
+      ports:
+        - "8001:8000"  
